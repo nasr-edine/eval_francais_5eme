@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Évaluation blanche – Grammaire (5e)</title>
+<style>
+:root{--bg:#f6f0ee;--ink:#2b1d1a;--mut:#6f5f5a;--acc:#c2410c;--accl:#fde7da;--bad:#b42318;--badl:#fde8e6;--line:#e3d3cc}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:780px;margin:0 auto;padding:16px}h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 .6em}
+.card{background:#fff;border:2px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}.hide{display:none}.sub{color:var(--mut);font-size:.95rem}
+button{font:inherit;font-weight:600;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:12px 22px;cursor:pointer}
+button.sec{background:#fff;color:var(--ink);border:2px solid var(--line)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #2563eb;outline-offset:2px}
+input,select{font:inherit;border:2px solid var(--line);border-radius:8px;padding:8px 10px;max-width:100%}
+input.t{width:min(100%,340px)}
+#bar{position:sticky;top:0;z-index:5;background:var(--ink);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 16px}
+#timer{font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums}#timer.low{color:#fdba74}
+.q{padding:10px 0;border-top:1px solid var(--line)}.q:first-of-type{border-top:0}
+.fl{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}.fl>span{flex:0 1 auto}
+.big{font-size:3rem;font-weight:800;line-height:1}.tip{background:var(--accl);border-radius:10px;padding:10px 14px;margin:8px 0}
+.warn{background:var(--badl);color:var(--bad);border-radius:10px;padding:8px 12px;font-size:.9rem}
+.r{padding:4px 8px;border-radius:6px;margin:3px 0;font-size:.95rem}.r.y{background:#eaf7ee}.r.n{background:var(--badl)}
+.lv{display:flex;align-items:center;gap:10px;margin:6px 0}.lv span:first-child{flex:0 0 230px;font-size:.95rem}.lv .t{flex:1;height:12px;background:var(--line);border-radius:6px}.lv .t i{display:block;height:100%;background:var(--acc);border-radius:6px}
+</style></head><body>
+<div id="bar" class="hide"><span>Grammaire – classes variables</span><span id="timer">40:00</span></div>
+<main>
+<section id="home" class="card">
+  <h1>Évaluation blanche de grammaire</h1>
+  <p class="sub">Français 5e · Chantier de grammaire n°2 (parties 1 et 2) · 40 minutes · 20 points</p>
+  <ul><li>Fais-la dans le calme, avec ton brouillon, <b>sans ton cahier ni ta leçon</b>.</li>
+  <li>Pour les réponses écrites, fais attention aux <b>accords</b> et aux <b>accents</b> : ils comptent. Les majuscules et le point final ne comptent pas.</li>
+  <li>Le chrono démarre au clic. À 0, l'évaluation est envoyée automatiquement.</li></ul>
+  <p><label>Prénom <input id="name" value="Anfal" autocomplete="off" style="width:150px"></label></p>
+  <p id="cfgwarn" class="warn hide">Google Sheet non configuré : les résultats restent sur cet appareil (voir SHEET_URL).</p>
+  <p><button id="go">Commencer l'évaluation</button></p>
+</section>
+<section id="exam" class="hide"><div id="qs"></div><p><button id="done">Terminer et envoyer</button></p></section>
+<section id="res" class="hide"></section>
+</main>
+<script>
+const SHEET_URL = "";            // URL Apps Script (…/exec)
+const TOKEN = "change-moi";
+const KEY = "francais-v1", EVID = "francais-5e-grammaire", MIN = 40;
+// ====== CONTENU ======
+const Q=(q,o)=>({q,f:[{t:"sel",o,a:o[0]}]});
+const S=(l,o,a,w)=>({t:"sel",l,o,a,w});
+const T=(l,a,w)=>({t:"txt",l,a});
+const CL=["nom","déterminant","adjectif","verbe","pronom"];
+const DET=["article défini","article indéfini","article partitif","déterminant démonstratif","déterminant possessif","déterminant numéral","déterminant interrogatif","déterminant indéfini"];
+const PRO=["pronom personnel","pronom démonstratif","pronom possessif","pronom relatif","pronom interrogatif","pronom indéfini","pronom adverbial","pronom numéral"];
+const DP=["déterminant","pronom"],DEG=["supériorité","égalité","infériorité"];
+const EXAM={secs:[
+{id:"A",t:"A. Le groupe nominal et le verbe",tip:"Le nom est le noyau du GN : le déterminant et l'adjectif s'accordent avec lui en genre et en nombre. Un adjectif qui qualifie des noms de genres différents se met au masculin pluriel. Le verbe est le seul mot qu'on peut encadrer par « ne… pas » et il s'accorde avec son sujet.",qs:[
+ Q("Quelle liste donne les 5 classes grammaticales variables ?",["noms, déterminants, adjectifs, verbes, pronoms","noms, adverbes, prépositions, verbes, pronoms","noms, déterminants, conjonctions, verbes, adjectifs"]),
+ {q:"<b>Exercice 1.</b> Donne la classe grammaticale de chaque mot : « Le <b>vieux</b> marin observait <b>la</b> mer <b>immense</b>. <b>Il</b> <b>la</b> <b>regardait</b> avec curiosité. »",f:[S("« vieux »",CL,"adjectif",.5),S("« la » (la mer)",CL,"déterminant",.5),S("« immense »",CL,"adjectif",.5),S("« Il »",CL,"pronom",.5),S("« la » (la regardait)",CL,"pronom",.5),S("« regardait »",CL,"verbe",.5)]},
+ Q("Dans « une petite table roulante », le nom noyau est…",["table","petite","roulante","une"]),
+ Q("Un groupe nominal minimal est constitué au moins…",["d'un déterminant et d'un nom","d'un nom et d'un adjectif","d'un adjectif et d'un verbe"]),
+ {q:"<b>Exercice 2.</b> Réécris chaque groupe nominal en faisant les accords nécessaires.",f:[T("des fenêtres brisé →",["des fenêtres brisées"]),T("une chaussure noir et usé →",["une chaussure noire et usée"]),T("une armoire et un coffre ancien →",["une armoire et un coffre anciens"])]},
+ Q("Quel test permet de reconnaître un verbe ?",["On peut l'encadrer par une négation (ne… pas)","On peut le mettre au féminin","Il est toujours placé devant un nom"]),
+ {q:"<b>Exercice 3.</b> « Les jeunes explorateurs observaient attentivement les animaux sauvages. » Analyse le verbe conjugué.",f:[T("Infinitif de « observaient » :",["observer"]),S("Temps :",["imparfait","présent","futur","passé simple"],"imparfait"),T("Sujet :",["les jeunes explorateurs"])]},
+ {q:"Réécris la phrase en remplaçant « les jeunes explorateurs » par « le jeune explorateur » (fais toutes les modifications nécessaires).",f:[{t:"txt",a:["le jeune explorateur observait attentivement les animaux sauvages"],w:2,show:"Le jeune explorateur observait attentivement les animaux sauvages."}]}]},
+{id:"B",t:"B. Les déterminants",tip:"Un déterminant est toujours placé devant un nom. Articles (le, un, du…), démonstratifs (ce, cet, cette, ces), possessifs (mon, ta, leur…), numéraux (deux, la troisième), interrogatifs (quel, quelles), indéfinis (aucun, chaque, plusieurs, certains…).",qs:[
+ {q:"<b>Exercice 4.</b> Donne la nature des déterminants : « <b>Cette</b> maison possède <b>plusieurs</b> pièces et <b>une</b> grande terrasse. »",f:[S("« Cette »",DET,"déterminant démonstratif"),S("« plusieurs »",DET,"déterminant indéfini"),S("« une »",DET,"article indéfini")]},
+ {q:"Réécris « des élèves » avec un déterminant de quantité…",f:[T("nulle :",["aucun élève","nul élève"]),T("totale :",["chaque élève","tous les élèves","tout élève"])]},
+ {q:"Réécris « ce livre » avec un déterminant…",f:[{t:"txt",l:"possessif :",re:/^(mon|ton|son|notre|votre|leur) livre$/,show:"mon livre (ou ton, son, notre, votre, leur)"},{t:"txt",l:"numéral :",re:/^(deux|trois|quatre|cinq|six|sept|huit|neuf|dix|vingt|cent) livres$/,show:"deux livres (ou trois, quatre…)"}]},
+ Q("Que donne « à + les » ?",["aux","au","des"]),
+ Q("Lequel est un déterminant interrogatif ?",["quelles","lequel","qui"])]},
+{id:"C",t:"C. Les pronoms",tip:"Un pronom remplace un nom ou un GN pour éviter une répétition, et il prend son genre et son nombre. Il existe 8 types. Attention : « certains », « plusieurs » sont déterminants devant un nom, pronoms quand ils sont seuls ; « le » est un déterminant devant un nom, un pronom devant un verbe.",qs:[
+ {q:"<b>Exercice 5.</b> Donne le type de chaque pronom : « <b>Ceux</b> <b>qui</b> arrivent en retard <b>le</b> regrettent et s'<b>en</b> excusent. »",f:[S("« Ceux »",PRO,"pronom démonstratif"),S("« qui »",PRO,"pronom relatif"),S("« le »",PRO,"pronom personnel"),S("« en »",PRO,"pronom adverbial")]},
+ {q:"<b>Exercice 6.</b> Remplace le groupe souligné par un pronom adapté.",f:[T("Je parle à mes amis → Je … parle.",["leur"]),T("Je prends du pain → J'… prends.",["en"])]},
+ {q:"Déterminant ou pronom ? « <b>Certains</b> élèves regardaient les affiches tandis que <b>d'autres</b> discutaient. Je connais <b>plusieurs</b> réponses. »",f:[S("« Certains »",DP,"déterminant"),S("« d'autres »",DP,"pronom"),S("« plusieurs »",DP,"déterminant")]},
+ {q:"<b>Exercice 7.</b> Évite la répétition en remplaçant le groupe souligné par un pronom.",f:[T("Il trie mes affaires et je trie ses affaires. → je trie …",["les siennes"]),T("Nous apprécions votre maison mais nous préférons notre maison. → nous préférons …",["la nôtre","la notre"])]},
+ Q("Combien de types de pronoms existe-t-il ?",["8","5","3"]),
+ {q:"Déterminant ou pronom ?",f:[S("« Je <b>le</b> vois » : « le » est un…",DP,"pronom"),S("« <b>Le</b> jeune explorateur » : « le » est un…",DP,"déterminant")]}]},
+{id:"D",t:"D. L'adjectif et ses degrés",tip:"Intensité : peu (faible), assez (moyen), vraiment/très (élevé). Comparatifs : moins / aussi / plus + adjectif + que. Superlatifs : le/la/les moins ou plus + adjectif + de.",qs:[
+ {q:"<b>Exercice 8.</b> L'intensité de l'adjectif.",f:[S("Quel adverbe exprime un degré faible ?",["peu","assez","vraiment"],"peu"),S("Quel adverbe exprime un degré élevé ?",["vraiment","assez","peu"],"vraiment")]},
+ {q:"Indique le degré de chaque comparatif.",f:[S("« Les attaques de requin sont plus fréquentes qu'autrefois. »",DEG,"supériorité"),S("« Cette blague est moins drôle que la mienne. »",DEG,"infériorité"),S("« Brr, il fait aussi froid qu'hier. »",DEG,"égalité")]},
+ {q:"<b>Exercice 9.</b> Écris l'adjectif au superlatif demandé.",f:[T("Ce peintre est (« doué », supériorité) … de sa génération.",["le plus doué"]),T("Sa maison est (« moderne », infériorité) … du quartier.",["la moins moderne"])]},
+ Q("« Elle est la plus élégante de toutes. » est un…",["superlatif de supériorité","comparatif de supériorité","comparatif d'égalité"])]}]};
+// ====== OUTILS ======
+const $=id=>document.getElementById(id);
+EXAM.F=[];EXAM.secs.forEach(s=>s.qs.forEach((q,qi)=>{q.id=s.id+(qi+1);q.f.forEach((f,fi)=>{f.id=q.id+(q.f.length>1?"."+(fi+1):"");f.sec=s.id;f.w=f.w||1;EXAM.F.push(f)})}));
+EXAM.SC=20/EXAM.F.reduce((a,f)=>a+f.w,0);
+const nz=s=>(s||"").toLowerCase().replace(/[’‘]/g,"'").replace(/\s+/g," ").replace(/[.!?\s]+$/,"").trim();
+const gradeF=(f,v)=>{v=(v||"").toString();if(!v.trim())return 0;
+ if(f.t==="sel")return v===f.a?f.w:0;const x=nz(v);
+ if(f.re)return f.re.test(x)?f.w:0;return f.a.some(a=>nz(a)===x)?f.w:0};
+const att=f=>f.show||(f.t==="sel"?f.a:f.a[0]);
+const shuf=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+const fmt=n=>(Math.round(n*10)/10).toString().replace(".",",");
+const esc=s=>(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+let S_=null,tick=null;
+const sv=()=>{try{localStorage.setItem(KEY,JSON.stringify(S_))}catch(e){}};
+async function send(p){p.token=TOKEN;if(!SHEET_URL)return false;
+ try{await fetch(SHEET_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify(p)});return true}
+ catch(e){const q=JSON.parse(localStorage.getItem(KEY+"-q")||"[]");q.push(p);localStorage.setItem(KEY+"-q",JSON.stringify(q));return false}}
+async function flush(){const q=JSON.parse(localStorage.getItem(KEY+"-q")||"[]");if(!q.length||!SHEET_URL)return;localStorage.removeItem(KEY+"-q");for(const p of q)await send(p)}
+function begin(){S_={name:$("name").value.trim()||"Anfal",start:Date.now(),ans:{},blurs:0,done:false};sv();send({type:"start",name:S_.name,at:new Date().toISOString(),app:EVID});run()}
+function run(){$("home").classList.add("hide");$("exam").classList.remove("hide");render();$("bar").classList.remove("hide");const D=MIN*60;
+ const u=()=>{const l=Math.max(0,D-Math.floor((Date.now()-S_.start)/1000));$("timer").textContent=String(Math.floor(l/60)).padStart(2,"0")+":"+String(l%60).padStart(2,"0");$("timer").classList.toggle("low",l<=300);if(l<=0){clearInterval(tick);finish(true)}};u();tick=setInterval(u,500)}
+function ctl(f){const v=S_.ans[f.id]||"",id=`data-f="${f.id}"`;
+ if(f.t==="sel")return`<select ${id}><option value="">— choisir —</option>${shuf(f.o).map(o=>`<option${o===v?" selected":""}>${o}</option>`).join("")}</select>`;
+ return`<input class="t" ${id} value="${esc(v)}" autocomplete="off" autocapitalize="off" spellcheck="false">`}
+function render(){let h="";EXAM.secs.forEach(s=>{h+=`<div class="card"><h2>${s.t}</h2>`;
+ s.qs.forEach(q=>{h+=`<div class="q"><div>${q.q}</div>`;q.f.forEach(f=>{h+=`<div class="fl">${f.l?`<span>${f.l}</span>`:""}${ctl(f)}</div>`});h+="</div>"});h+="</div>"});
+ $("qs").innerHTML=h;document.querySelectorAll("[data-f]").forEach(el=>el.addEventListener("input",()=>{S_.ans[el.dataset.f]=el.value;sv()}))}
+async function finish(auto){if(S_.done&&S_.result)return;S_.done=true;clearInterval(tick);
+ const dur=Math.min(MIN*60,Math.round((Date.now()-S_.start)/1000)),SC=EXAM.SC;
+ const det=EXAM.F.map(f=>({id:f.id,sec:f.sec,rep:S_.ans[f.id]||"",att:att(f),max:f.w*SC,pts:gradeF(f,S_.ans[f.id])*SC}));
+ const total=det.reduce((a,d)=>a+d.pts,0);S_.result={det,total,dur,auto:!!auto};sv();
+ const sent=await send({type:"svt",ev:EVID,name:S_.name,at:new Date().toISOString(),total,dur,auto:!!auto,blurs:S_.blurs,det});showRes(sent)}
+function band(n){if(n>=16)return["Excellent","Tu maîtrises très bien ce chantier de grammaire. Relis seulement tes petites erreurs."];
+ if(n>=12)return["Bon travail","Tu es au-dessus de la moyenne. Retravaille les parties signalées ci-dessous."];
+ if(n>=8)return["Presque là","Les bases sont là. Relis ta leçon sur les parties signalées, puis refais l'évaluation."];
+ return["À reprendre","Reprends la leçon partie par partie avec ton cahier, puis refais l'évaluation : tu progresseras vite."]}
+function showRes(sent){clearInterval(tick);["bar","home","exam"].forEach(i=>$(i).classList.add("hide"));$("res").classList.remove("hide");
+ const R=S_.result,[t,m]=band(R.total);
+ let h=`<div class="card"><p class="sub">${esc(S_.name)} · ${Math.floor(R.dur/60)} min ${R.dur%60} s${R.auto?" · temps écoulé":""}</p><div class="big">${fmt(R.total)} / 20</div><h2>${t}</h2><p>${m}</p>
+ <p class="sub">${sent?"Résultat envoyé.":SHEET_URL?"Envoi impossible : il sera renvoyé à la prochaine ouverture.":"Résultat enregistré sur cet appareil uniquement."}</p></div><div class="card"><h2>Par partie</h2>`;let tips="";
+ EXAM.secs.forEach(s=>{const d=R.det.filter(x=>x.sec===s.id),g=d.reduce((a,x)=>a+x.pts,0),mx=d.reduce((a,x)=>a+x.max,0),p=Math.round(g/mx*100);
+  h+=`<div class="lv"><span>${s.t}</span><span class="t"><i style="width:${p}%"></i></span><span>${p}%</span></div>`;if(p<60)tips+=`<div class="tip"><b>${s.t}</b><br>${s.tip}</div>`});
+ h+=`</div><div class="card"><h2>À retravailler</h2>${tips||"<p><b>Toutes les parties sont bien maîtrisées.</b></p>"}</div><div class="card"><h2>Correction</h2>`;
+ EXAM.secs.forEach(s=>{h+=`<p><b>${s.t}</b></p>`;s.qs.forEach(q=>q.f.forEach(f=>{const d=R.det.find(x=>x.id===f.id),ok=d.pts>=d.max-1e-9,lab=(f.l||q.q).replace(/<[^>]+>/g,"").slice(0,90);
+  h+=`<div class="r ${ok?"y":"n"}">${ok?"✓":"✗"} ${esc(lab)}${ok?"":` — ta réponse : <i>${esc(d.rep)||"—"}</i> · attendu : <b>${esc(d.att)}</b>`}</div>`}))});
+ h+=`</div><p><button class="sec" id="again">Refaire l'évaluation</button></p>`;$("res").innerHTML=h;
+ $("again").onclick=()=>{if(confirm("Effacer cet essai et recommencer ?")){localStorage.removeItem(KEY);location.reload()}}}
+$("go").onclick=begin;
+$("done").onclick=()=>{if(confirm("Terminer et envoyer l'évaluation ?"))finish(false)};
+if(!SHEET_URL)$("cfgwarn").classList.remove("hide");
+document.addEventListener("visibilitychange",()=>{if(S_&&!S_.done&&document.hidden){S_.blurs++;sv()}});
+flush();
+try{S_=JSON.parse(localStorage.getItem(KEY))}catch(e){S_=null}
+if(S_){S_.blurs=S_.blurs||0;if(S_.done&&S_.result)showRes(true);else if(S_.done)finish(true);else run()}
+</script></body></html>
